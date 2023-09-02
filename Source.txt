@@ -1,0 +1,189 @@
+@echo off
+cls
+COLOR 0D
+title Recovery Flash Tool BY: Kxiu.
+set adb="%~dp0\adb.exe"
+set fastboot="%~dp0\fastboot.exe"
+mode con:cols=68 lines=28
+
+:start
+cls
+echo.
+cecho {2F} Recovery Flash Tool {\n #}
+cecho {2F} Telegram: @Kxiuu {\n #}
+cecho {2F} Gethub: @kxui {\n #}
+echo.
+cecho   {3F}            {4F}Use only with unlocked bootloader!{#}{3F}          {\n #}
+cecho   {3F}          Boot your phone into the Fastboot mode,       {\n #}
+cecho   {3F}     to do this, Hold "Volume -" and "Power."           {\n #}
+echo.
+cecho  {3F} 1 {#}  {0A}Install Recovery for Xiaomi Device.{\n #}
+echo.
+cecho  {3F} 2 {#}  {0A}Install Recovery for another "Android" Device.{\n #}
+echo.
+cecho  {3F} x {#}  {0A}To Exit.{\n #}
+echo.
+SET /P menunr=Select action: 
+IF %menunr%==1 (goto twrp_one) ELSE (IF %menunr%==2 (goto twrp) ELSE (goto exit))
+
+:twrp_one
+cls
+echo.
+cecho  {0F}Connecting to the phone...{00}{\n #}
+%adb% kill-server > nul 2>&1
+%adb% start-server > nul 2>&1
+for /f %%i in ('%fastboot% devices') do set dev=%%i
+IF defined dev goto Flash_twrp
+%adb% shell echo > nul 2>&1
+IF not ERRORLEVEL 0 goto Nodev
+echo.
+cecho   {2F}DONE{00}{\n #}
+echo.
+cecho  {0F}Verify phone model...{00}.{\n #}
+for /f %%i in ('%adb% shell getprop ro.product.device') do set dev=%%i
+echo.
+cecho   {2F}DONE{00}{\n #}
+echo.
+cecho   {6F}Model: %dev%{00}.{\n #}
+if not %dev:~0,6%==vince  goto Nomod
+echo.
+cecho  {4F}To reboot into Fastboot mode, press any key....{00}{\n #}
+pause >nul
+echo.
+cecho {0F}Restarting...{00}.{\n #}
+%adb% push .twrps /sdcard/TWRP/.twrps > nul 2>&1
+ping -n 5 127.0.0.1 > nul 2>&1
+%adb% reboot bootloader
+goto Flash_twrp_one
+
+:Flash_twrp_one
+cls
+fastboot device > nul 2>&1
+cecho   {4F}	If you saw on the screen Mi -Banny and the inscription	{00}{\n #}
+cecho   {4F}			FASTBOOT,				{00}{\n #}
+cecho   {4F}	then to start installing TWRP, press any key...		{00}{\n #}
+pause >nul
+echo.
+cecho   {0F}Installation process...{00}{\n #}
+ping -n 3 127.0.0.1 > nul
+echo.
+cecho   {0F}Wait for the inscription OKAY.{00}{\n #}
+echo.
+%fastboot% flash recovery twrp.img 2>&1 | find /i "okay"
+echo.
+cecho    {2F}DONE{00}{\n #}
+echo.
+cecho   {4F}	Now you need to run TWRP	{00}{\n #}
+cecho   {4F}	to do this, press any key...	{00}{\n #}
+pause >nul
+%fastboot% boot twrp.img > nul 2>&1
+echo.
+cecho    {2F}READY{00}{\n #}
+timeout /t 6 /nobreak > nul 2>&1
+echo.
+cecho  {4F} After a few seconds, TWRP will start... {00}{\n #}
+timeout /t 6 /nobreak > nul 2>&1
+echo.
+cecho  {4F}		IMPORTANT!!!			{00}{\n #}
+cecho  {4F}	Wait for the TWRP main menu to load and	{00}{\n #}
+cecho  {4F}	only then press any key...		{00}{\n #}
+pause >nul
+echo.
+cecho   {0F}Phone preparation...{00}{\n #}
+%adb% shell mount -o rw /dev/block/mmcblk0p49 /cust
+timeout /t 3 /nobreak > nul 2>&1
+%adb% shell rm -irf /cust/app/customized
+timeout /t 3 /nobreak > nul 2>&1
+cecho   {0F}Save stock Boot...{00}{\n #}
+%adb% shell dd if=/dev/block/mmcblk0p21 of=/cust/.boot_stock.img bs=4096
+timeout /t 5 /nobreak > nul 2>&1
+echo.
+echo.
+cecho    {2F}DONE{00}{\n #}
+echo.
+cecho  {4F} Reboot from TWRP to TWRP from the menu. {00}{\n #}
+echo.
+cecho  {6F} To exit, press any key... {00}{\n #}
+pause >nul
+goto End
+
+:twrp
+cls
+echo.
+cecho  {0F}Connect to the phone...{00}{\n #}
+%adb% kill-server > nul 2>&1
+%adb% start-server > nul 2>&1
+for /f %%i in ('%fastboot% devices') do set dev=%%i
+IF defined dev goto Flash_twrp
+%adb% shell echo > nul 2>&1
+IF not ERRORLEVEL 0 goto Nodev
+echo.
+cecho   {2F}DONE{00}{\n #}
+echo.
+cecho  {0F}Verify phone model...{00}.{\n #}
+for /f %%i in ('%adb% shell getprop ro.product.device') do set dev=%%i
+echo.
+cecho   {2F}DONE{00}{\n #}
+echo.
+cecho   {6F}Model: %dev%{00}.{\n #}
+if not %dev:~0,6%==vince  goto Nomod
+echo.
+cecho  {4F} To reboot into Fastboot mode, press any key...{00}{\n #}
+pause >nul
+echo.
+cecho {0F}Restarting...{00}.{\n #}
+%adb% push .twrps /sdcard/TWRP/.twrps > nul 2>&1
+ping -n 5 127.0.0.1 > nul 2>&1
+%adb% reboot bootloader
+goto Flash_twrp
+
+:Flash_twrp
+cls
+fastboot device > nul 2>&1
+cecho   {4F}	If you saw on the screen Mi -Banny and the inscription	{00}{\n #}
+cecho   {4F}			FASTBOOT,				{00}{\n #}
+cecho   {4F}	then to start installing TWRP, press any key...		{00}{\n #}
+pause >nul
+echo.
+cecho   {0F}Installation process TWRP...{00}{\n #}
+ping -n 3 127.0.0.1 > nul
+echo.
+cecho   {0F}Wait for the inscription OKAY.{00}{\n #}
+echo.
+%fastboot% flash recovery twrp.img 2>&1 | find /i "okay"
+echo.
+cecho    {2F}DONE{00}{\n #}
+echo.
+cecho   {4F}To start TWRP, press any key...{00}{\n #}
+pause >nul
+%fastboot% boot twrp.img > nul 2>&1
+echo.
+cecho    {2F}READY{00}{\n #}
+timeout /t 6 /nobreak > nul 2>&1
+echo.
+cecho   {4F} After a few seconds, TWRP will start...{00}{\n #}
+timeout /t 6 /nobreak > nul 2>&1
+echo.
+echo.
+cecho  {4F} Reboot from TWRP to TWRP from the menu. {00}{\n #}
+echo.
+cecho  {6F} To exit, press any key...{00}{\n #}
+pause >nul
+goto End
+
+:Nodev
+cls
+cecho   {4F}The phone is not detected.{00}{\n #}
+cecho   {4F}Turn on USB debugging and Install the drivers.{00}{\n #}
+pause >nul
+goto start
+
+:Nomod
+cls
+cecho   {4F}Your phone model is not Xiaomi.{00}{\n #}
+cecho   {4F}Connect the correct device and try again.{00}{\n #}
+pause >nul
+goto start
+
+:End
+exit
